@@ -3,7 +3,7 @@
 This repository contains the R code for a Shiny interface of the NatureDataCube.
 The idea of the NatureDataCube is that it offers an accessible way for researchers/ecologists to retrieve relevant data. 
 It is a demo version and it will be used for the NAEM.
- The Shiny interface was made as an example of what the interface
+The Shiny interface was made as an example of what the interface
 of the NatureDataCube could look like and to gather feedback from researchers.
 
 
@@ -12,8 +12,8 @@ This interface is built upon the work from Minke Mulder (NIOO-KNAW) in October -
 
 ### Opening the Shiny app
 
-To open and use this code, go to [R](https://github.com/LTER-LIFE/NatureDataCube-Shiny-NAEM/blob/main/R/app.R) open app.R in RStudio (or another R environment), and install/load the required packages. Then, in the R console, enter:
-"data_nc <- runApp("app.R")" to launch the interface. If you want to retrieve data, you will also need to provide the API tokens.
+To open and use this code, go to [R/naturedatacube_app](https://github.com/LTER-LIFE/NatureDataCube-Shiny-NAEM/tree/main/R/naturedatacube_app) open app.R in RStudio (or another R environment), and install/load the required packages, and set the working directory to NatureDataCube-Shiny-NAEM. Then, in the R console, enter:
+"data_nc <- runApp("R/naturedatacube_app/app.R")" to launch the interface. If you want to retrieve data, you will also need to provide the API tokens.
 
 ### Generate an API token
 
@@ -27,16 +27,11 @@ to retrieve data for. Below is a description of all the files that are in this r
 
 #### Shiny app
 
-Folder: [R](https://github.com/LTER-LIFE/NatureDataCube-Shiny-NAEM/tree/main/R)
+Folder: [R/naturedatacube_app](https://github.com/LTER-LIFE/NatureDataCube-Shiny-NAEM/tree/main/R/naturedatacube_app)
 
 This folder contains the R code for the Shiny interface. 
 
-### Files:
-
- - `app.R`\
-   The code for the app itself.
- 
- ### Subfolder: 
+ #### Subfolder: 
   - [retrieval_functions](https://github.com/LTER-LIFE/NatureDataCube-Shiny-NAEM/tree/main/R/retrieval_functions)
    taken from [NatureDataCube-R](https://github.com/LTER-LIFE/NatureDataCube-R)
 
