@@ -68,7 +68,7 @@ library(zip)
 # - mytoken  : token for authenticated requests
 # - myheaders: HTTP headers used in all API calls
 # ============================================================
-source("retrieval_functions/ndc_url.R")
+source("R/retrieval_functions/ndc_url.R")
 
 mytoken <- "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3N1ZWR0byI6ImQubGljaHRlbmJlcmdAbmlvby5rbmF3Lm5sIiwicmVzb3VyY2UiOlsiKiJdLCJpYXQiOjE3NjgyMTM3OTZ9.nEmOwkBTzKBjlsZL8obY-kWvghNS4A1M1Vwv1B94SSU
 "
@@ -81,7 +81,7 @@ myheaders <- c(
 # Load polygon data
 # ============================================================
 # Fixed polygons 
-gpkg   <- "data/study_sites.gpkg"
+gpkg   <- "R/data/study_sites.gpkg"
 layers <- sf::st_layers(gpkg)$name
 
 all_layers <- set_names(
@@ -554,3 +554,4 @@ server <- function(input, output, session) {
 # Run app
 # ============================================================
 shinyApp(ui, server)
+
