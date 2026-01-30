@@ -31,20 +31,14 @@ Folder: [R](https://github.com/LTER-LIFE/NatureDataCube-Shiny-NAEM/tree/main/R)
 
 This folder contains the R code for the Shiny interface. 
 
-Files:
+### Files:
 
-- `app.R`\
-  The code for the app itself.
-
-Subfolder: 
-  and a sub folder [retrieval_functions(https://github.com/LTER-LIFE/NatureDataCube-Shiny-NAEM/tree/main/R/retrieval_functions)
-  taken from [NatureDataCube-R](https://github.com/LTER-LIFE/NatureDataCube-R)
-
-  
-#### Data retrieval functions
-
-
-
+ - `app.R`\
+   The code for the app itself.
+ 
+ ### Subfolder: 
+  - [retrieval_functions](https://github.com/LTER-LIFE/NatureDataCube-Shiny-NAEM/tree/main/R/retrieval_functions)
+   taken from [NatureDataCube-R](https://github.com/LTER-LIFE/NatureDataCube-R)
 
 #### Data
 
