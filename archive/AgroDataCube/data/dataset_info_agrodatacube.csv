@@ -1,8 +1,0 @@
-dataset;sub_dataset;start_date;end_date;description;description_sub
-AHN;Zonal statistics;;;Actueel Hoogtebestand Nederland;Zonal statistics info
-AHN;AHN image;;;Actueel Hoogtebestand Nederland;AHN image info
-NDVI;NDVI;1-1-2020;1-1-2024;Normalized Difference Vegetation Index;NDVI info
-NDVI;NDVI image;1-1-2020;1-1-2024;Normalized Difference Vegetation Index;NDVI image info
-KNMI;Climate;1-1-2020;1-1-2024;Koninklijk Nederlands Meteorologisch Instituut;KNMI info
-Soil;Params;;;Soil info ;Params info
-Soil;Types;;;Soil info ;Types info
