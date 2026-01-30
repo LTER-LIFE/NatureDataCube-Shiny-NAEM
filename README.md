@@ -17,7 +17,7 @@ To open and use this code, go to [R](https://github.com/LTER-LIFE/NatureDataCube
 
 ### Generate an API token
 
-To generate your free personal API token to retrieve data you can go to [Register API tokens]([https://developer.dataplatform.knmi.nl/apis](https://agrodatacube.wur.nl/api/register.jsp)).
+To generate your free personal API token to retrieve data you can go to [Register API tokens](https://agrodatacube.wur.nl/api/register.jsp).
 
 
 ### Description
