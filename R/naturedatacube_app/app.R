@@ -15,9 +15,13 @@
 # - Download results as GeoJSON files in a ZIP file or use them in a R variable
 
 # how to run it: 
-# first load / install the packages 
-# data_nc <- runApp("app.R") # if choosing to continue in r data will
-# be stored in the variable data_nc
+# 1. first load / install the libraries 
+# 2. set the working directory to NatureDataCube-Shiny-NAEM
+# 3. data_nc <- runApp("R/naturedatacube_app/app.R") # if choosing to continue in r data will
+#    be stored in the variable data_nc
+
+
+
 
 
 # Design rules for now:
@@ -556,4 +560,5 @@ server <- function(input, output, session) {
 # Run app
 # ============================================================
 shinyApp(ui, server)
+
 
