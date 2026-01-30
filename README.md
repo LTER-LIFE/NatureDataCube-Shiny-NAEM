@@ -12,7 +12,7 @@ This interface is built upon the work from Minke Mulder (NIOO-KNAW) in October -
 
 ### Opening the Shiny app
 
-To open and use this code, go to ["R/"](https://github.com/LTER-LIFE/NatureDataCube-Shiny-NAEM/blob/main/R/app.R) open app.R in RStudio (or another R environment), and install/load the required packages. Then, in the R console, enter:
+To open and use this code, go to [R](https://github.com/LTER-LIFE/NatureDataCube-Shiny-NAEM/blob/main/R/app.R) open app.R in RStudio (or another R environment), and install/load the required packages. Then, in the R console, enter:
 "data_nc <- runApp("app.R")" to launch the interface. If you want to retrieve data, you will also need to provide the API tokens.
 
 ### Generate an API token
@@ -27,7 +27,7 @@ to retrieve data for. Below is a description of all the files that are in this r
 
 #### Shiny app
 
-Folder: [R/](https://github.com/LTER-LIFE/NatureDataCube-Shiny-NAEM/tree/main/R)
+Folder: [R](https://github.com/LTER-LIFE/NatureDataCube-Shiny-NAEM/tree/main/R)
 
 This folder contains the R code for the Shiny interface. 
 
