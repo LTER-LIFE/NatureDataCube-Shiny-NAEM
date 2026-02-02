@@ -11,9 +11,17 @@ of the NatureDataCube could look like and to gather feedback from researchers.
 This interface is built upon the work from Minke Mulder (NIOO-KNAW) in October - December 2025.
 
 ### Opening the Shiny app
+To use the Shiny app and continue working with the retrieved data in R, the app must be launched in a specific way so that the output is stored in an R object.
+Steps: 
+- Navigate to the Shiny app [directory](https://github.com/LTER-LIFE/NatureDataCube-Shiny-NAEM/tree/main/R/naturedatacube_app)
+- Open app.R in RStudio (or another R environment).
+- Install and load all required R packages.
+- Set your working directory to the root folder of the repository: setwd("path/to/NatureDataCube-Shiny-NAEM")
+- Launch the Shiny app from the R console: data_nc <- runApp("R/naturedatacube_app/app.R")
 
-To open and use the shiny app, go to [R/naturedatacube_app](https://github.com/LTER-LIFE/NatureDataCube-Shiny-NAEM/tree/main/R/naturedatacube_app) open app.R in RStudio (or another R environment), and install/load the required packages, and set the working directory to NatureDataCube-Shiny-NAEM. Then, in the R console, enter:
-"data_nc <- runApp("R/naturedatacube_app/app.R")" to launch the interface. If you want to retrieve data, you will also need to provide an API token.
+Launching the app in this way ensures that the output generated through the Shiny interface is returned and stored in the R variable data_nc.
+This allows you to continue working with the retrieved data in R after closing the app. To retrieve data from the Nature Data Cube, an API token is required. 
+Make sure your token is available in your R session before requesting data. See below. 
 
 ### Generate an API token
 
