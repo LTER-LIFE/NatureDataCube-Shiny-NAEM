@@ -13,7 +13,7 @@ This interface is built upon the work from Minke Mulder (NIOO-KNAW) in October -
 ### Opening the Shiny app
 
 To open and use the shiny app, go to [R/naturedatacube_app](https://github.com/LTER-LIFE/NatureDataCube-Shiny-NAEM/tree/main/R/naturedatacube_app) open app.R in RStudio (or another R environment), and install/load the required packages, and set the working directory to NatureDataCube-Shiny-NAEM. Then, in the R console, enter:
-"data_nc <- runApp("R/naturedatacube_app/app.R")" to launch the interface. If you want to retrieve data, you will also need to provide the API tokens.
+"data_nc <- runApp("R/naturedatacube_app/app.R")" to launch the interface. If you want to retrieve data, you will also need to provide an API token.
 
 ### Generate an API token
 
