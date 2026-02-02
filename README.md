@@ -21,7 +21,7 @@ Steps:
 
 Launching the app in this way ensures that the output generated through the Shiny interface is returned and stored in the R variable data_nc.
 This allows you to continue working with the retrieved data in R after closing the app. To retrieve data from the Nature Data Cube, an API token is required. 
-Make sure your token is available in your R session before requesting data. See below. 
+Make sure your token is available in your R session before requesting data. 
 
 ### Generate an API token
 
