@@ -20,10 +20,6 @@
 # 3. data_nc <- runApp("R/naturedatacube_app/app.R") # if choosing to continue in r data will
 #    be stored in the variable data_nc
 
-
-
-
-
 # Design rules for now:
 # - ONE polygon (study area) per download / export 
 # - Multiple datasets are allowed for that polygon
@@ -32,41 +28,31 @@
 # ============================================================
 # Libraries
 # ============================================================
-if(!"shiny" %in% installed.packages()){install.packages("shiny")}
-library(shiny)
+load_pkgs <- function(pkgs) {
+  to_install <- pkgs[!pkgs %in% installed.packages()[, "Package"]]
+  if (length(to_install)) {
+    install.packages(to_install)
+  }
+  invisible(lapply(pkgs, library, character.only = TRUE))
+}
 
-if(!"leaflet" %in% installed.packages()){install.packages("leaflet")}
-library(leaflet)
+pkgs <- c(
+  "shiny",
+  "leaflet",
+  "leaflet.extras",
+  "sf",
+  "dplyr",
+  "purrr",
+  "stringr",
+  "httr",
+  "geojsonsf",
+  "jsonlite",
+  "zip",
+  "here"
+)
 
-if(!"leaflet.extras" %in% installed.packages()){install.packages("leaflet.extras")}
-library(leaflet.extras)
+load_pkgs(pkgs)
 
-if(!"sf" %in% installed.packages()){install.packages("sf")}
-library(sf)
-
-if(!"dplyr" %in% installed.packages()){install.packages("dplyr")}
-library(dplyr)
-
-if(!"purrr" %in% installed.packages()){install.packages("purrr")}
-library(purrr)
-
-if(!"stringr" %in% installed.packages()){install.packages("stringr")}
-library(stringr)
-
-if(!"httr" %in% installed.packages()){install.packages("httr")}
-library(httr)
-
-if(!"geojsonsf" %in% installed.packages()){install.packages("geojsonsf")}
-library(geojsonsf)
-
-if(!"jsonlite" %in% installed.packages()){install.packages("jsonlite")}
-library(jsonlite)
-
-if(!"zip" %in% installed.packages()){install.packages("zip")}
-library(zip)
-
-if(!"here" %in% installed.packages()){install.packages("here")}
-library(here)
 # ============================================================
 # NatureDataCube API configuration
 # ============================================================
@@ -163,12 +149,12 @@ ui <- fluidPage(
     sidebarPanel(
       radioButtons(
         "fixed_layer",
-        "Select or draw project area:",
+        "Select project or draw own polygon :",
         choices = c(
           "NutNet",
           "Nestboxes",
           "Loobos",
-          "Licht op natuur lantaarnpalen"
+          "Light on Nature"
         )
       ),
       leafletOutput("map", height = "400px"),
@@ -250,17 +236,46 @@ server <- function(input, output, session) {
   
   # Fixed polygon selection
   observeEvent(input$fixed_layer, {
-    leafletProxy("map") %>% clearGroup("fixed") %>% clearGroup("highlight_fixed")
+    leafletProxy("map") %>% 
+      clearGroup("fixed") %>% 
+      clearGroup("highlight_fixed") %>% 
+      clearPopups()  # <-- clear old popups
+    
     poly <- switch(
       input$fixed_layer,
       "NutNet" = nutnet_wkt,
       "Nestboxes" = nestboxes_wkt,
       "Loobos" = loobos_wkt,
-      "Licht op natuur lantaarnpalen" = lights_wkt
+      "Light on Nature" = lights_wkt
     ) %>% mutate(layer_id = row_number())
+    
     fixed_polys(poly)
-    leafletProxy("map") %>% addPolygons(data = poly, group = "fixed", color = "black", fillOpacity = 0.3, weight = 2, layerId = ~layer_id)
+    leafletProxy("map") %>% addPolygons(
+      data = poly, 
+      group = "fixed", 
+      color = "black", 
+      fillOpacity = 0.3, 
+      weight = 2, 
+      layerId = ~layer_id
+    )
+    
+    # Show a popup if no polygon is selected yet
+    if (is.null(drawn_polygon())) {
+      # Use centroid of the first polygon for popup
+      centroid <- sf::st_centroid(poly[1, ])
+      coords <- sf::st_coordinates(centroid)
+      
+      leafletProxy("map") %>% addPopups(
+        lng = coords[1],
+        lat = coords[2],
+        popup = "⚠ You have selected a project but still need to select or draw a project area.",
+        options = popupOptions(closeButton = TRUE)
+      )
+    }
   })
+  
+  
+  
   
   # Clicking a fixed polygon
   observeEvent(input$map_shape_click, {
@@ -281,9 +296,21 @@ server <- function(input, output, session) {
     poly_sf <- convert_drawn_to_sf(input$map_draw_new_feature, start_layer_id = start_id)
     req(poly_sf)
     drawn_polygon(poly_sf)
-    leafletProxy("map") %>% clearGroup("highlight_drawn") %>%
-      addPolygons(data = poly_sf, group = "highlight_drawn", color = "#007bff", weight = 4, fillOpacity = 0.5, layerId = ~layer_id)
+    
+    # Clear old drawn AND fixed highlights
+    leafletProxy("map") %>% 
+      clearGroup("highlight_drawn") %>%
+      clearGroup("highlight_fixed") %>%
+      addPolygons(
+        data = poly_sf, 
+        group = "highlight_drawn", 
+        color = "#007bff", 
+        weight = 4, 
+        fillOpacity = 0.5, 
+        layerId = ~layer_id
+      )
   })
+  
   
   observeEvent(input$map_draw_deleted_features, {
     drawn_polygon(NULL)
