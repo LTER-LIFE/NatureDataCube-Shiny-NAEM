@@ -1,10 +1,8 @@
+
 # ============================================================
 # R Shiny NatureDataCube interface demo version: NAEM
 # ============================================================
-# Created on   : 26 Jan  2026
-# Last update  : 30 Jan 2026
 
-#
 # Description:
 # This script is based on the previous version created by Minke Mulder
 # and this Shiny application allows users to:
@@ -61,9 +59,14 @@ load_pkgs(pkgs)
 # - myheaders: HTTP headers used in all API calls
 # ============================================================
 source(here::here("R", "retrieval_functions", "ndc_url.R"))
+source(here::here("R", "retrieval_functions", "ndc_get.R"))
 
-mytoken <- "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3N1ZWR0byI6ImQubGljaHRlbmJlcmdAbmlvby5rbmF3Lm5sIiwicmVzb3VyY2UiOlsiKiJdLCJpYXQiOjE3NjgyMTM3OTZ9.nEmOwkBTzKBjlsZL8obY-kWvghNS4A1M1Vwv1B94SSU
-"
+# weather helper functions
+source(here::here("R","retrieval_functions", "weather_functions", "get_closest_meteostation.R"))
+source(here::here("R","retrieval_functions",  "weather_functions", "get_meteo_for_date.R"))
+source(here::here("R", "retrieval_functions", "weather_functions", "get_meteo_for_period.R"))
+
+mytoken <- "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3N1ZWR0byI6ImQubGljaHRlbmJlcmdAbmlvby5rbmF3Lm5sIiwicmVzb3VyY2UiOlsiKiJdLCJpYXQiOjE3NjgyMTM3OTZ9.nEmOwkBTzKBjlsZL8obY-kWvghNS4A1M1Vwv1B94SSU"
 myheaders <- c(
   "Accept" = "application/json;charset=utf-8",
   "token"  = mytoken
@@ -169,7 +172,8 @@ ui <- fluidPage(
         choices = c(
           "Agricultural fields",
           "AHN",
-          "Soil map"
+          "Soil map", 
+          "Weather"
         )
       )
     ),
@@ -208,9 +212,12 @@ server <- function(input, output, session) {
       year = integer(),
       polygon = character(),
       wkt = character(),
-      polygon_sf = list()
+      polygon_sf = list(),
+      date_from = as.Date(character()),
+      date_to = as.Date(character())
     )
   )
+  
   
   download_msgs <- reactiveVal(character(0))
   
@@ -274,9 +281,6 @@ server <- function(input, output, session) {
     }
   })
   
-  
-  
-  
   # Clicking a fixed polygon
   observeEvent(input$map_shape_click, {
     click <- input$map_shape_click
@@ -328,7 +332,9 @@ server <- function(input, output, session) {
     switch(input$selected_dataset,
            "Agricultural fields" = HTML("Agricultural fields: Data about crops, yield, and fertilization."),
            "AHN" = HTML("AHN: Elevation data of the Netherlands."),
-           "Soil map" = HTML("Soil map: Soil types / soil map intersections for the selected area.")
+           "Soil map" = HTML("Soil map: Soil types / soil map intersections for the selected area."),
+           "Weather"= HTML("weather from KNMI")
+           
     )
   })
   
@@ -339,7 +345,41 @@ server <- function(input, output, session) {
       numericInput("selected_year", "Select year:", value = 2025, min = 2000, max = 2025)
     } else if (input$selected_dataset == "AHN") {
       numericInput("selected_year", "Select AHN version (year):", value = 2025, min = 2010, max = as.numeric(format(Sys.Date(), "%Y")))
-    } else {
+    } else if (input$selected_dataset == "Weather") {
+      tagList(
+        radioButtons(
+          "weather_mode",
+          "Weather query type:",
+          choices = c("Single date" = "single", "Period" = "period"),
+          selected = "single",
+          inline = TRUE
+        ),
+        
+        conditionalPanel(
+          condition = "input.weather_mode == 'single'",
+          dateInput(
+            "weather_date",
+            "Date (single):",
+            value = Sys.Date(),
+            min = as.Date("2016-01-01"),
+            max = Sys.Date()
+          )
+        ),
+        
+        conditionalPanel(
+          condition = "input.weather_mode == 'period'",
+          dateRangeInput(
+            "weather_period",
+            "From - To:",
+            start = Sys.Date() - 30,
+            end = Sys.Date(),
+            min = as.Date("2016-01-01"),
+            max = Sys.Date()
+          )
+        )
+      )
+    }
+    else {
       helpText("Soil map selection does not require a year.")
     }
   })
@@ -390,28 +430,50 @@ server <- function(input, output, session) {
     }
     
     # soil map doesn't have a year 
-    year_val <- if (input$selected_dataset == "Soil map") NA_integer_ else as.integer(input$selected_year)
+    # determine year and date_from/date_to
+    year_val <- if (input$selected_dataset == "Soil map") NA_integer_ else if (input$selected_dataset == "Weather") NA_integer_ else as.integer(input$selected_year)
+  
+    # default date_from/date_to
+    date_from_val <- as.Date(NA)
+    date_to_val   <- as.Date(NA)
     
+    if (input$selected_dataset == "Weather") {
+      if (is.null(input$weather_mode) || input$weather_mode == "single") {
+        date_from_val <- as.Date(input$weather_date)
+        date_to_val   <- as.Date(input$weather_date)
+      } else {
+        rng <- input$weather_period
+        date_from_val <- as.Date(rng[1])
+        date_to_val   <- as.Date(rng[2])
+      }
+    }
+  
     # Append to overview
     duplicate_check <- ov %>%
       filter(dataset == input$selected_dataset,
              (is.na(year) & is.na(year_val) | year == year_val),
-             polygon == poly_name)
-    # check for duplicates 
+             polygon == poly_name,
+             (is.na(date_from) & is.na(date_from_val) | date_from == date_from_val),
+             (is.na(date_to) & is.na(date_to_val) | date_to == date_to_val)
+             )
+  
     if (nrow(duplicate_check) == 0) {
       new_row <- tibble::tibble(
         dataset = input$selected_dataset,
         year = year_val,
         polygon = poly_name,
         wkt = poly$wkt[1],
-        polygon_sf = list(poly)
+        polygon_sf = list(poly),
+        date_from = date_from_val,
+        date_to = date_to_val
       )
       overview(bind_rows(ov, new_row))
     } else {
-      showNotification("This dataset + polygon + year is already in the overview.", type = "message", duration = 3)
+      showNotification("This dataset + polygon + year/date is already in the overview.", type = "message", duration = 3)
     }
   })
   
+    
   # -----------------------
   # Overview table UI
   # -----------------------
@@ -472,11 +534,18 @@ server <- function(input, output, session) {
   # Clear overview
   # -----------------------
   observeEvent(input$clear_overview, {
-    overview(tibble::tibble(dataset = character(),
-                            year = integer(),
-                            polygon = character(),
-                            wkt = character(),
-                            polygon_sf = list()))
+    overview(
+      tibble::tibble(
+        dataset = character(),
+        year = integer(),
+        polygon = character(),
+        wkt = character(),
+        polygon_sf = list(),
+        date_from = as.Date(character()),
+        date_to = as.Date(character())
+      )
+    )
+    
     download_msgs(character(0))
   })
   
@@ -508,9 +577,47 @@ server <- function(input, output, session) {
           myurl <- switch(ds,
                           "Agricultural fields" = ndc_url("Fields", params = c(geometry=mypolygon, epsg="4326", year=year, cropname="mais", output_epsg="4326")),
                           "AHN" = ndc_url("AHN", params = c(geometry=mypolygon, epsg="4326")),
-                          "Soil map" = ndc_url("Soiltypes", params = c(geometry=mypolygon, epsg="4326", output_epsg="4326", page_size="25", page_offset="0"))
-          )
+                          "Soil map" = ndc_url("Soiltypes", params = c(geometry=mypolygon, epsg="4326", output_epsg="4326", page_size="25", page_offset="0")),
+                          "Weather" = NULL)
+          # special handling for Weather dataset
+          if (ds == "Weather") {
+            # polygon and token already available
+            tryCatch({
+              # 1) find closest station
+              cen_res <- get_closest_meteostation(mypolygon, token = mytoken)
+              closest_id <- cen_res$closest_id
+              if (is.null(closest_id) || length(closest_id) == 0) stop("Couldn't determine closest station id")
+              
+              # choose single date or period from overview stored values
+              df <- ov$date_from[i]
+              dt <- ov$date_to[i]
+              
+              if (!is.na(df) && !is.na(dt) && df == dt) {
+                # single date
+                meteo_sf <- get_meteo_for_date(stationid = closest_id, date = df, token = mytoken)
+              } else {
+                # period
+                if (is.na(df) || is.na(dt)) stop("Weather entry lacks date_from/date_to")
+                meteo_sf <- get_meteo_for_period(meteostation = closest_id, fromdate = df, todate = dt, token = mytoken)
+              }
+              
+              if (is.null(meteo_sf) || nrow(meteo_sf) == 0) {
+                stop("No weather records returned")
+              }
+              
+              # write result
+              st_write(meteo_sf, outfile, delete_dsn = TRUE)
+              results[[paste0(ds, "_", i)]] <- meteo_sf
+              local_msgs <- c(local_msgs, paste0("Retrieved: ", ds, " (station ", closest_id, ")"))
+            }, error = function(e) {
+              local_msgs <- c(local_msgs, paste0("Failed: Weather - ", e$message))
+            })
+            # skip the normal ndc_url -> ndc_get flow for the Weather case
+            incProgress(1/nrow(ov), detail = ds)
+            next
+          }
           
+                          
           myres <- content(VERB("GET", url=myurl, add_headers(myheaders)))
           myres_sf <- geojson_sf(toJSON(myres, auto_unbox=TRUE))
           names(myres_sf) <- gsub("[:/\\?<>\\|*\"\\\\]", "_", names(myres_sf))
@@ -581,11 +688,8 @@ server <- function(input, output, session) {
     res <- retrieve_and_save(zipfile=NULL)
     stopApp(res)
   })
-}
-
+} 
 # ============================================================
 # Run app
 # ============================================================
 shinyApp(ui, server)
-
-
