@@ -128,7 +128,7 @@ convert_drawn_to_sf <- function(feat, start_layer_id = 1) {
 # ============================================================
 ui <- fluidPage(
   # title
-  titlePanel("Data Nature Cube"),
+  titlePanel("Nature Data Cube"),
   
   # custom style 
   tags$head(
@@ -693,3 +693,4 @@ server <- function(input, output, session) {
 # Run app
 # ============================================================
 shinyApp(ui, server)
+
