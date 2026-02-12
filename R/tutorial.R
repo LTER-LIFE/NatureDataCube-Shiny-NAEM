@@ -2,11 +2,12 @@
 # 🐦 Adventure Tutorial: Bird Nests Meet Weather!
 # ============================================================
 # Today, we’re going on a mini data adventure:
-# we’ll explore bird nests, grab weather info,
+# we have our own dataset about bird nests in the Veluwe, and grab weather info through
+# the Data Nature Cube
 # and see if temperature affects when birds lay their eggs.
 #
 # Along the way, you’ll:
-# 1. Load and peek at nest data
+# 1. Load and peek at our nest data
 # 2. Use a Shiny app to grab weather data
 # 3. Clean, filter, and merge datasets
 # 4. Make a plot of lay dates vs temperature
@@ -24,7 +25,7 @@ library(dplyr)
 
 
 # ============================================================
-# 2. Load nest box data, supplied by Joseph Burant, PhD
+# 2. Load our collected Bird Nest data, (supplied by Joseph Burant, PhD)
 # ============================================================
 # This CSV contains:
 # - lay_date: when eggs were laid
@@ -35,37 +36,14 @@ library(dplyr)
 data <- read.csv("data/first_nests_HV.csv")
 
 # ============================================================
-# 3. Open the Shiny app and select weather data
-# ============================================================
-# Time for some interactive fun! The app lets you explore different datasets,
-# but we’re focusing on weather today.
-#
-# Once you finish, the data will be stored in `temp`.
-
-temp <- runApp("R/naturedatacube_app/app.R")
-
-# Shiny app steps:
-# 1. Select project: Nestboxes
-# 2. Zoom to Arnhem and select the polygon north of A12 ("De Hoge Veluwe")
-# 3. Pick "Weather" under available datasets
-# 4. Select the period: 2024-01-01 → 2025-01-01
-# 5. Click "Add to overview"
-# 6. Click "Return data to R" and close the app
-#
-# Now your weather data lives in `temp`! 🎉
-
-# 🐣 Mini challenge: Explore temp$datasets to see what other data is available
-
-# ============================================================
-# 4. Convert lay_date to a date format
+# 3. Convert lay_date to a date format
 # ============================================================
 # Sometimes R thinks dates are just text. Let’s fix that.
 
 data$lay_date <- as.Date(data$lay_date)
 
-
 # ============================================================
-# 5. Filter the nest data
+# 4. Filter the nest data
 # ============================================================
 # Let’s keep only:
 # - nests from 2024 onwards
@@ -82,12 +60,36 @@ data <- data %>%
 # 🐣 Mini challenge (optional): How many nests remain after filtering?
 # Hint: use nrow(data)
 
+
 # ============================================================
-# 6. Extract daily mean temperature from the Shiny app
+# 5. Open the Shiny app and select weather data
+# ============================================================
+# Time for some interactive fun! The app lets you explore different datasets,
+# but we’re focusing on weather today.
+#
+# Once you finish, the data will be stored in `weather_data`.
+
+weather_data <- runApp("R/naturedatacube_app/app.R")
+
+# Shiny app steps:
+# 1. Select project: Nestboxes
+# 2. Zoom to Arnhem and select the polygon north of A12 ("De Hoge Veluwe")
+# 3. Pick "Weather" under available datasets
+# 4. Select the period: 2024-01-01 → 2025-01-01
+# 5. Click "Add to overview"
+# 6. Click "Return data to R" and close the app
+#
+# Now your weather data lives in `weather_data`! 🎉
+
+# 🐣 Mini challenge: Explore weather_data$datasets to see what type of weather data is available
+
+
+# ============================================================
+# 6. Extract daily mean temperature 
 # ============================================================
 # We’ll select just the date and mean_temperature columns and rename them.
 
-weather <- temp$datasets$Weather_1 %>%
+mean_temp <- weather_data$datasets$Weather_1 %>%
   select(
     date = datum,
     temp = mean_temperature
@@ -96,7 +98,8 @@ weather <- temp$datasets$Weather_1 %>%
 # ============================================================
 # 7. Make sure weather dates are Date objects
 # ============================================================
-weather$date <- as.Date(weather$date)
+mean_temp$date <- as.Date(mean_temp$date)
+
 
 # ============================================================
 # 8. Merge nest data with temperature data
@@ -104,7 +107,8 @@ weather$date <- as.Date(weather$date)
 # Each nest now gets the mean temperature on its lay date.
 
 plot_data <- data %>%
-  left_join(weather, by = c("lay_date" = "date"))
+  left_join(mean_temp, by = c("lay_date" = "date"))
+
 
 # ============================================================
 # 9. Keep only nests from 2024
